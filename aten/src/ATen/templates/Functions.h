@@ -224,4 +224,8 @@ inline Tensor conj(const Tensor& tensor) {
   return tensor.conj();
 }
 
+inline bool is_neg(const Tensor& tensor) {
+  return tensor.is_neg();
+}
+
 }

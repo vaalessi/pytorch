@@ -279,6 +279,7 @@ Tensor class reference
     Tensor.conj_physical
     Tensor.conj_physical_
     Tensor.resolve_conj
+    Tensor.resolve_neg
     Tensor.copysign
     Tensor.copysign_
     Tensor.cos
