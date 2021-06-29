@@ -915,6 +915,7 @@ void standardizeVectorForUnion(std::vector<TypePtr>* to_flatten) {
                         "passed a `nullptr`");
   std::vector<TypePtr> to_fill;
   standardizeVectorForUnion(*to_flatten, &to_fill);
+  *to_flatten = to_fill;
 }
 
 UnionType::UnionType(std::vector<TypePtr> reference, TypeKind kind) : Type(kind) {
@@ -1072,7 +1073,7 @@ std::string UnionType::unionStr(TypePrinter printer, bool is_annotation_str) con
 
   auto is_numbertype = [&](TypePtr lhs) {
     for (const auto& rhs : number_types) {
-      if (lhs == rhs) {
+      if (*lhs == *rhs) {
         return true;
       }
     }
@@ -1080,11 +1081,12 @@ std::string UnionType::unionStr(TypePrinter printer, bool is_annotation_str) con
   };
 
   ss << "Union[";
-  size_t i = 0;
-  for (; i < types_.size(); ++i) {
+  bool printed = false;
+  for (size_t i = 0; i < types_.size(); ++i) {
     if (!can_hold_numbertype || !is_numbertype(types_[i])) {
       if (i > 0) {
         ss << ", ";
+        printed = true;
       }
       if (is_annotation_str) {
         ss << types_[i]->annotation_str(printer);
@@ -1094,7 +1096,7 @@ std::string UnionType::unionStr(TypePrinter printer, bool is_annotation_str) con
     }
   }
   if (can_hold_numbertype) {
-    if (i > 0) {
+    if (printed) {
       ss << ", ";
     }
     if (is_annotation_str) {
@@ -1175,11 +1177,16 @@ c10::optional<TypePtr> UnionType::subtractTypeSet(std::vector<TypePtr>& to_subtr
 
 OptionalType::OptionalType(TypePtr contained)
                            : UnionType({contained, NoneType::get()}, TypeKind::OptionalType) {
+  bool is_numbertype = false;
+  if (auto as_union = contained->cast<UnionType>()) {
+    is_numbertype = as_union->containedTypes().size() == 3 &&
+                    as_union->canHoldType(NumberType::get());
+  }
   if (UnionType::containedTypes().size() == 2) {
     contained_ = UnionType::containedTypes()[0]->kind()!= NoneType::Kind
                  ? UnionType::containedTypes()[0]
                  : UnionType::containedTypes()[1];
-  } else if (contained == NumberType::get()) {
+  } else if (contained == NumberType::get() || is_numbertype) {
     contained_ = NumberType::get();
     types_.clear();
     types_.push_back(NumberType::get());
