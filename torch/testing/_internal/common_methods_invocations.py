@@ -4028,10 +4028,12 @@ def sample_inputs_attn(op_info, device, dtype, requires_grad, **kwargs):
     def _tensor(shape):
         return make_tensor(shape, device, dtype, low=None, high=None, requires_grad=requires_grad)
 
+    test_dims = [1, 3, 7]
+
     def generator():
-        for dim1 in range(1, 10):
-            for dim2 in range(1, 10):
-                for dim3 in range(1, 10):
+        for dim1 in test_dims:
+            for dim2 in test_dims:
+                for dim3 in test_dims:
                     q = _tensor((dim1, dim2))
                     k = _tensor((dim1, dim2))
                     v = _tensor((dim1, dim3))
@@ -6933,21 +6935,10 @@ op_db: List[OpInfo] = [
            backward_dtypes=floating_types_and(torch.float16, torch.bfloat16),
            ),
     OpInfo('attn',
-           dtypes=floating_types(),
+           dtypes=floating_types_and(torch.bfloat16),
            sample_inputs_func=sample_inputs_attn,
            skips=(
                SkipInfo('TestCommon', 'test_out'),
-               SkipInfo('TestOpInfo', 'test_unsupported_dtypes'),
-           )),
-]
-
-op_db: List[OpInfo] = [
-    OpInfo('attn',
-           dtypes=floating_types(),
-           sample_inputs_func=sample_inputs_attn,
-           skips=(
-               SkipInfo('TestCommon', 'test_out'),
-               SkipInfo('TestOpInfo', 'test_unsupported_dtypes'),
            )),
 ]
 
