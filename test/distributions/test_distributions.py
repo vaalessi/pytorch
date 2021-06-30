@@ -4551,7 +4551,10 @@ class TestValidation(TestCase):
         for Dist, params in BAD_EXAMPLES:
             for i, param in enumerate(params):
                 try:
-                    with self.assertRaises(ValueError):
+                    with self.assertRaisesRegex(
+                        ValueError,
+                        "The value argument .* must be within the support .*",
+                    ):
                         Dist(validate_args=True, **param)
                 except AssertionError as e:
                     fail_string = 'ValueError not raised for {} example {}/{}'
